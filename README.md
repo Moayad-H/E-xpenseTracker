@@ -1,1 +1,1 @@
-# E-xpenseTracker
+# ExpenseTracker
