@@ -1,7 +1,10 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
+import 'package:tracker_app/models/expense.dart';
 
 class newExpense extends StatefulWidget {
-  newExpense({super.key});
+  const  newExpense({super.key});
   @override
   State<newExpense> createState() {
     // TODO: implement createState
@@ -12,18 +15,56 @@ class newExpense extends StatefulWidget {
 class _newExpense extends State<newExpense> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
+  DateTime? _selectedDate;
+  Category _selectedCategory = Category.leisure;
   @override
   void dispose() {
     _titleController.dispose();
     _amountController.dispose();
     super.dispose();
   }
+  void createNewExpense(){
+
+}
+  void _submitData() {
+    final enteredAmount = double.tryParse(_amountController.text);
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
+    if (_titleController.text.trim().isEmpty ||
+        amountIsInvalid ||
+        _selectedDate == null) {
+      //error
+      showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+                title: const Text("Invalid Input"),
+                content: const Text("Please make sure to validate your inputs"),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text("Okay"))
+                ],
+              ));
+      return;
+    }
+  }
+
 /*
   var _enteredTitle = '';
   void _saveTitleInput(String inputValue) {
     _enteredTitle = inputValue;
   }
 */
+  void _presentDatePicker() async {
+    final now = DateTime.now();
+    final first = DateTime(now.year - 1, now.month, now.day);
+    final pickedDate = await showDatePicker(
+        context: context, initialDate: now, firstDate: first, lastDate: now);
+    setState(() {
+      _selectedDate = pickedDate;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,23 +79,62 @@ class _newExpense extends State<newExpense> {
           keyboardType: TextInputType.text,
           decoration: const InputDecoration(label: Text("Title")),
         ),
-        TextField(
-          controller: _amountController,
-          maxLength: 10,
-          keyboardType: TextInputType.number,
-          decoration:
-              const InputDecoration(prefix: Text('\$ '), label: Text("Amount")),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                    prefix: Text('\$ '), label: Text("Amount")),
+              ),
+            ),
+            const SizedBox(
+              width: 16,
+            ),
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(_selectedDate == null
+                      ? 'No Date Selected'
+                      : formatter.format(_selectedDate!)),
+                  IconButton(
+                      onPressed: _presentDatePicker,
+                      icon: const Icon(Icons.calendar_month))
+                ],
+              ),
+            )
+          ],
+        ),
+        const SizedBox(
+          height: 16,
         ),
         //add textfield for amount of expense to be created
         Row(
           children: [
-            ElevatedButton(
-                onPressed: () {
-                  print(_titleController.text);
-                  print(_amountController.text);
-                },
-                child: const Text("Save Expense")),
+            DropdownButton(
+                value: _selectedCategory,
+                items: Category.values
+                    .map(
+                      (cat) => DropdownMenuItem(
+                        value: cat,
+                        child: Text(cat.name.toUpperCase()),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) {
+                  if (value == null) {
+                    return;
+                  }
+                  setState(() {
+                    _selectedCategory = value;
+                  });
+                }),
             const Spacer(),
+            ElevatedButton(
+                onPressed: _submitData, child: const Text("Save Expense")),
             ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
