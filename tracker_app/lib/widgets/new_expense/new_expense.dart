@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:tracker_app/models/expense.dart';
 
 class newExpense extends StatefulWidget {
-  const  newExpense({super.key});
+  const newExpense({super.key, required this.onSubmit});
+  final void Function(Expense exp) onSubmit;
   @override
   State<newExpense> createState() {
     // TODO: implement createState
@@ -23,15 +24,12 @@ class _newExpense extends State<newExpense> {
     _amountController.dispose();
     super.dispose();
   }
-  void createNewExpense(){
 
-}
   void _submitData() {
     final enteredAmount = double.tryParse(_amountController.text);
     final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
-    if (_titleController.text.trim().isEmpty ||
-        amountIsInvalid ||
-        _selectedDate == null) {
+    final enteredTitle = _titleController.text.trim();
+    if (enteredTitle.isEmpty || amountIsInvalid || _selectedDate == null) {
       //error
       showDialog(
           context: context,
@@ -48,6 +46,13 @@ class _newExpense extends State<newExpense> {
               ));
       return;
     }
+    widget.onSubmit(Expense(
+        amount: enteredAmount,
+        dateTime: _selectedDate!,
+        title: enteredTitle,
+        category: _selectedCategory));
+
+    Navigator.pop(context);
   }
 
 /*
@@ -97,9 +102,12 @@ class _newExpense extends State<newExpense> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(_selectedDate == null
-                      ? 'No Date Selected'
-                      : formatter.format(_selectedDate!)),
+                  Text(
+                    _selectedDate == null
+                        ? 'No Date Selected'
+                        : formatter.format(_selectedDate!),
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   IconButton(
                       onPressed: _presentDatePicker,
                       icon: const Icon(Icons.calendar_month))
@@ -115,6 +123,7 @@ class _newExpense extends State<newExpense> {
         Row(
           children: [
             DropdownButton(
+                style: Theme.of(context).textTheme.titleSmall,
                 value: _selectedCategory,
                 items: Category.values
                     .map(
