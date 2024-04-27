@@ -72,6 +72,5 @@ void main() {
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ))),
-      home: const Expenses() //Add main widget,
-      ));
+      home: const Expenses()));
 }
